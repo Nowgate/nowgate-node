@@ -1,0 +1,52 @@
+{
+  "name": "nowgate",
+  "version": "0.1.0",
+  "description": "The Nowgate API's TypeScript SDK: payments, payment links, payouts and refunds, with webhook verification. No dependencies.",
+  "keywords": [
+    "nowgate",
+    "payments",
+    "crypto",
+    "stablecoins",
+    "webhooks",
+    "sdk"
+  ],
+  "homepage": "https://docs.nowgate.io/sdks/typescript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Nowgate/nowgate-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Nowgate/nowgate-node/issues"
+  },
+  "license": "MIT",
+  "author": "Nowgate (https://nowgate.io)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p . && tsc -p tests",
+    "test": "node --test tests/*.test.ts",
+    "test:package": "node --test tests/package/package.test.mjs"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "typescript": "6.0.3"
+  }
+}
