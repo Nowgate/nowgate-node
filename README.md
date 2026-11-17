@@ -5,9 +5,7 @@ verification. It has no dependencies: it uses `fetch` and Web Crypto, so it runs
 and later, Deno, Bun and edge workers. It runs on servers only, since an API key must never reach
 a browser.
 
-```bash
-npm install nowgate
-```
+**Coming soon on npm.**
 
 ## Create a payment
 
