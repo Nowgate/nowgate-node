@@ -1594,10 +1594,10 @@ export interface components {
             fee_paid_by: components["schemas"]["PayoutFeePaidBy"];
             destination: components["schemas"]["PayoutDestination"];
             /**
-             * @description Present on a queued payout that is waiting for something on Nowgate's side.
+             * @description Present on a queued payout that is waiting for something on Nowgate's side. `safety_check` means Nowgate has paused payouts while it checks something: nothing is lost, the payout goes out once the check is done, and you can still cancel it.
              * @enum {string}
              */
-            waiting_reason?: "liquidity" | "gas_funding" | "fees" | "signer_limit";
+            waiting_reason?: "liquidity" | "gas_funding" | "fees" | "signer_limit" | "safety_check";
             /** @description Present on a failed payout. */
             failure_reason?: string;
             external_id?: string;
@@ -1704,10 +1704,10 @@ export interface components {
             /** @description While it is awaiting_address, the page where the payer gives their address. Send it to them. */
             refund_url?: string;
             /**
-             * @description Present on a queued refund that is waiting for something on Nowgate's side.
+             * @description Present on a queued refund that is waiting for something on Nowgate's side. `safety_check` means Nowgate has paused payouts and refunds while it checks something: nothing is lost, and the refund goes out once the check is done.
              * @enum {string}
              */
-            waiting_reason?: "liquidity" | "gas_funding" | "fees" | "signer_limit";
+            waiting_reason?: "liquidity" | "gas_funding" | "fees" | "signer_limit" | "safety_check";
             /** @description Present on a failed refund. */
             failure_reason?: string;
             external_id?: string;
