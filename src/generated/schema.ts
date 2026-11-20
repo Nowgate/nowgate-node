@@ -36,6 +36,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/accepted-assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve the assets you accept
+         * @description The network-asset pairs your business accepts: the one list every checkout page
+         *     of yours offers from. A payment link priced in a currency or with an open
+         *     amount, and a subscription's invoice, offer exactly these. A payment, a link or
+         *     a plan in one asset needs that asset to be among them. The dashboard's settings
+         *     show and change the same list.
+         */
+        get: operations["getAcceptedAssets"];
+        /**
+         * Set the assets you accept
+         * @description Replaces the list, all at once, with at least one pair. It applies from that
+         *     moment to every checkout page of yours, the payment links you have already
+         *     shared among them: nothing about a link needs changing. Payments already made
+         *     keep their asset and complete as usual. An asset Nowgate adds later is not
+         *     accepted until you add it.
+         */
+        put: operations["setAcceptedAssets"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/payment-links": {
         parameters: {
             query?: never;
@@ -573,8 +605,7 @@ export interface paths {
          *     `payment` mode each payment's credit as it reaches your available balance, in
          *     `daily` mode your whole available balance once a day at `hour` UTC. Nothing under
          *     `min_amount` is forwarded. Forwarding payouts are ordinary payouts with
-         *     `source: forwarding`; the network fee comes out of them (`fee_paid_by: payee`), and
-         *     they never wait for approval.
+         *     `source: forwarding`; the network fee comes out of them (`fee_paid_by: payee`).
          */
         put: operations["setForwarding"];
         post?: never;
@@ -1034,6 +1065,15 @@ export interface components {
             object: "list";
             data: components["schemas"]["Asset"][];
         };
+        AcceptedAssets: {
+            /**
+             * @description Ignored in a request.
+             * @constant
+             */
+            object?: "accepted_assets";
+            /** @description The pairs your business accepts, in the order of `GET /v1/assets`. */
+            assets: components["schemas"]["Pair"][];
+        };
         CreatePaymentRequest: {
             network: components["schemas"]["Network"];
             asset: components["schemas"]["AssetSymbol"];
@@ -1194,7 +1234,7 @@ export interface components {
         CreatePaymentLinkRequest: {
             title: string;
             description?: string;
-            /** @description A fixed price in `price_currency`; the payer picks any of `assets`. */
+            /** @description A fixed price in `price_currency`; the payer picks any of the assets you accept. */
             price_amount?: components["schemas"]["FiatAmount"];
             /** @description USD or EUR. */
             price_currency?: string;
@@ -1203,7 +1243,12 @@ export interface components {
             network?: components["schemas"]["Network"];
             asset?: components["schemas"]["AssetSymbol"];
             open_amount?: components["schemas"]["OpenAmount"];
-            /** @description The pairs a payer may choose for a price in a currency. Every pair Nowgate follows if left out. */
+            /**
+             * @deprecated
+             * @description No longer used. A link has no list of its own: it offers the assets your
+             *     business accepts (`GET /v1/accepted-assets`). The field is still taken, so
+             *     a request that sends it keeps working, and it changes nothing.
+             */
             assets?: components["schemas"]["Pair"][];
             markup_bps?: number;
             fee_paid_by?: components["schemas"]["FeePaidBy"];
@@ -1234,6 +1279,10 @@ export interface components {
             network?: components["schemas"]["Network"];
             asset?: components["schemas"]["AssetSymbol"];
             open_amount?: components["schemas"]["OpenAmount"];
+            /**
+             * @deprecated
+             * @description No longer used, as on creation. It is taken and changes nothing.
+             */
             assets?: components["schemas"]["Pair"][];
             markup_bps?: number;
             fee_paid_by?: components["schemas"]["FeePaidBy"];
@@ -1265,7 +1314,10 @@ export interface components {
             network?: components["schemas"]["Network"];
             asset?: components["schemas"]["AssetSymbol"];
             open_amount?: components["schemas"]["OpenAmount"];
-            /** @description The pairs a payer may choose; empty means every pair Nowgate follows. */
+            /**
+             * @description The pairs a payer may choose on the link now: the assets your business
+             *     accepts. Empty for a link priced in one asset, which takes only that one.
+             */
             assets: components["schemas"]["Pair"][];
             markup_bps: number;
             fee_paid_by: components["schemas"]["FeePaidBy"];
@@ -1481,7 +1533,11 @@ export interface components {
          * @enum {string}
          */
         PayoutFeePaidBy: "merchant" | "payee";
-        /** @enum {string} */
+        /**
+         * @description `awaiting_approval` is no longer used: a payout or refund doesn't wait for
+         *     anyone's approval, and none enters that status.
+         * @enum {string}
+         */
         PayoutStatus: "awaiting_address" | "awaiting_approval" | "scheduled" | "waiting_destination" | "queued" | "sending" | "finished" | "failed" | "canceled";
         Balance: {
             network: components["schemas"]["Network"];
@@ -1603,6 +1659,7 @@ export interface components {
             external_id?: string;
             batch?: components["schemas"]["PayoutBatchID"];
             send_at?: components["schemas"]["Timestamp"];
+            /** @description No longer set. Present only on a payout that was approved while payouts could wait for approval. */
             approved_at?: components["schemas"]["Timestamp"];
             /** @description The transaction that carries it */
             transaction?: string;
@@ -1711,6 +1768,7 @@ export interface components {
             /** @description Present on a failed refund. */
             failure_reason?: string;
             external_id?: string;
+            /** @description No longer set. Present only on a refund that was approved while refunds could wait for approval. */
             approved_at?: components["schemas"]["Timestamp"];
             /** @description The transaction that carries it */
             transaction?: string;
@@ -1822,7 +1880,12 @@ export interface components {
             /** @description Intervals per period (1 by default). A period is a day to a year. */
             interval_count?: number;
             trial_days?: number;
-            /** @description For a price in a currency, the pairs a subscriber may pay with; every pair by default. */
+            /**
+             * @deprecated
+             * @description No longer used. A plan has no list of its own: a subscriber pays with any of
+             *     the assets your business accepts (`GET /v1/accepted-assets`). The field is
+             *     still taken and changes nothing.
+             */
             assets?: components["schemas"]["Pair"][];
             markup_bps?: number;
             fee_paid_by?: components["schemas"]["FeePaidBy"];
@@ -1835,6 +1898,10 @@ export interface components {
             name?: string;
             description?: string;
             trial_days?: number;
+            /**
+             * @deprecated
+             * @description No longer used, as on creation. It is taken and changes nothing.
+             */
             assets?: components["schemas"]["Pair"][];
             markup_bps?: number;
             fee_paid_by?: components["schemas"]["FeePaidBy"];
@@ -1856,6 +1923,10 @@ export interface components {
             interval: components["schemas"]["Interval"];
             interval_count: number;
             trial_days: number;
+            /**
+             * @description The pairs a subscriber may pay with now: the assets your business accepts.
+             *     Empty for a plan priced in one asset.
+             */
             assets: components["schemas"]["Pair"][];
             markup_bps: number;
             fee_paid_by: components["schemas"]["FeePaidBy"];
@@ -2112,6 +2183,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssetList"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    getAcceptedAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Your accepted assets. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedAssets"];
+                };
+            };
+            default: components["responses"]["Error"];
+        };
+    };
+    setAcceptedAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcceptedAssets"];
+            };
+        };
+        responses: {
+            /** @description Your accepted assets as set. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AcceptedAssets"];
                 };
             };
             default: components["responses"]["Error"];

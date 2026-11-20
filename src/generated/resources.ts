@@ -74,6 +74,7 @@ export type Status = components["schemas"]["Status"];
 export type NetworkStatus = components["schemas"]["NetworkStatus"];
 export type Asset = components["schemas"]["Asset"];
 export type AssetList = components["schemas"]["AssetList"];
+export type AcceptedAssets = components["schemas"]["AcceptedAssets"];
 export type CreatePaymentRequest = components["schemas"]["CreatePaymentRequest"];
 export type FiatAmount = components["schemas"]["FiatAmount"];
 export type FeePaidBy = components["schemas"]["FeePaidBy"];
@@ -227,6 +228,41 @@ export class AssetsResource extends APIResource {
    */
   list(options?: RequestOptions): APIPromise<AssetList> {
     return this._client.request<AssetList>({ method: "GET", path: "/assets" }, options);
+  }
+}
+
+/** `acceptedAssets`: retrieve, update. */
+export class AcceptedAssetsResource extends APIResource {
+  /**
+   * Retrieve the assets you accept
+   *
+   * The network-asset pairs your business accepts: the one list every checkout page
+   * of yours offers from. A payment link priced in a currency or with an open
+   * amount, and a subscription's invoice, offer exactly these. A payment, a link or
+   * a plan in one asset needs that asset to be among them. The dashboard's settings
+   * show and change the same list.
+   *
+   *
+   * `GET /accepted-assets`
+   */
+  retrieve(options?: RequestOptions): APIPromise<AcceptedAssets> {
+    return this._client.request<AcceptedAssets>({ method: "GET", path: "/accepted-assets" }, options);
+  }
+
+  /**
+   * Set the assets you accept
+   *
+   * Replaces the list, all at once, with at least one pair. It applies from that
+   * moment to every checkout page of yours, the payment links you have already
+   * shared among them: nothing about a link needs changing. Payments already made
+   * keep their asset and complete as usual. An asset Nowgate adds later is not
+   * accepted until you add it.
+   *
+   *
+   * `PUT /accepted-assets`
+   */
+  update(body: AcceptedAssets, options?: RequestOptions): APIPromise<AcceptedAssets> {
+    return this._client.request<AcceptedAssets>({ method: "PUT", path: "/accepted-assets", body }, options);
   }
 }
 
@@ -672,8 +708,7 @@ export class ForwardingResource extends APIResource {
    * `payment` mode each payment's credit as it reaches your available balance, in
    * `daily` mode your whole available balance once a day at `hour` UTC. Nothing under
    * `min_amount` is forwarded. Forwarding payouts are ordinary payouts with
-   * `source: forwarding`; the network fee comes out of them (`fee_paid_by: payee`), and
-   * they never wait for approval.
+   * `source: forwarding`; the network fee comes out of them (`fee_paid_by: payee`).
    *
    *
    * `PUT /forwarding`
@@ -947,6 +982,7 @@ export class SandboxResource extends APIResource {
 export abstract class NowgateResources {
   readonly status: StatusResource;
   readonly assets: AssetsResource;
+  readonly acceptedAssets: AcceptedAssetsResource;
   readonly rates: RatesResource;
   readonly payments: PaymentsResource;
   readonly paymentLinks: PaymentLinksResource;
@@ -965,6 +1001,7 @@ export abstract class NowgateResources {
   protected constructor(client: Requester) {
     this.status = new StatusResource(client);
     this.assets = new AssetsResource(client);
+    this.acceptedAssets = new AcceptedAssetsResource(client);
     this.rates = new RatesResource(client);
     this.payments = new PaymentsResource(client);
     this.paymentLinks = new PaymentLinksResource(client);

@@ -13,6 +13,16 @@ https://docs.nowgate.io/changelog.
   `simulateSubscription` and `simulateInvoice`, and the `subscription.*` and `invoice.*` events.
 - `safety_check` among a queued payout's or refund's `waiting_reason`s: Nowgate has paused payouts
   while it checks something, and the payout goes out once the check is done.
+- The assets a business accepts, as one list: `acceptedAssets.retrieve()` reads it and `acceptedAssets.update()`
+  replaces it, for every checkout page of the business at once.
+
+### Deprecated
+
+- `assets` on a payment link and on a plan, in a request: a link or a plan has no list of its own
+  any more, and offers the assets the business accepts. The field is still taken and changes
+  nothing. In an answer, `assets` is what a payer may choose now.
+- `awaiting_approval` among a payout's or refund's statuses, and `approved_at`: nothing waits for
+  an approval any more, so neither is seen on a new payout.
 
 ## [0.1.0] - not yet published
 
